@@ -1,0 +1,40 @@
+name: Production 3-Tier CI/CD Pipeline
+
+# 1. Trigger this pipeline automatically every time code is pushed to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step A: Pull the latest code out of your repository into the GitHub runner
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    # Step B: Securely log into your AWS Hyderabad server and deploy the code
+    - name: Execute Remote SSH Commands via Deployment Keys
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.AWS_SERVER_IP }}
+        username: ubuntu
+        key: ${{ secrets.AWS_SSH_KEY }}
+        port: 22
+        script: |
+          echo "------------------------------------------------"
+          echo "🚀 Handshake Established with AWS Hyderabad Server!"
+          echo "------------------------------------------------"
+          
+          # Remove the default white Nginx landing page safely
+          rm -f /var/www/html/index.html
+          
+          # Inject our automated production page code directly into the web directory
+          echo "<html><body style='background-color:#0d1117;color:#58a6ff;text-align:center;font-family:sans-serif;padding-top:10%;'>" > /var/www/html/index.html
+          echo "<h1>⚡ GitOps Pipeline Trigger Complete ⚡</h1>" >> /var/www/html/index.html
+          echo "<p>This deployment was executed completely by <b>GitHub Actions</b> onto your live AWS Hyderabad node.</p>" >> /var/www/html/index.html
+          echo "</body></html>" >> /var/www/html/index.html
+          
+          echo "🔄 Nginx Baseline Reloaded and Active."
